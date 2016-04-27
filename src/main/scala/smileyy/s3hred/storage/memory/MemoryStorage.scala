@@ -12,7 +12,8 @@ import smileyy.s3hred.storage.Storage
 /**
   * In-memory [[Storage]] of a [[Dataset]]
   */
-private[memory] class MemoryStorage(val schema: DatasetSchema, data: Map[String, Array[Byte]], rows: Long) extends Storage {
+private[memory] class MemoryStorage(val schema: DatasetSchema, data: Map[String, Array[Byte]], numberOfRows: Long)
+    extends Storage {
 
   override def iterator(select: Select, where: Where): Iterator[Seq[Any]] = {
     val readers: Set[ColumnReader] = {
@@ -20,6 +21,6 @@ private[memory] class MemoryStorage(val schema: DatasetSchema, data: Map[String,
       names.map { name => schema.column(name).reader(new ByteArrayInputStream(data(name))) }
     }
 
-    new RowIterator(rows, readers, select, where)
+    new RowIterator(numberOfRows, readers, select, where)
   }
 }
