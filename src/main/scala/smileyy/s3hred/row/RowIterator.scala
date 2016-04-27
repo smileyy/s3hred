@@ -14,7 +14,7 @@ private[s3hred] class RowIterator(rows: Long, readers: Set[ColumnReader], select
 
   val readersByName: Map[String, ColumnReader] = readers.map { r => r.name -> r }.toMap
   val selected: Seq[ColumnReader] = select.columns.map(readersByName)
-  val predicate: ()=> Boolean = createPredicate(where.expr)
+  val predicate: () => Boolean = createPredicate(where.expr)
 
   var rowsRead: Long = 0
   var nextRow: Option[Seq[Any]] = readNextRow()
