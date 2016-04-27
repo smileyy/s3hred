@@ -19,4 +19,6 @@ class MemoryStorageSystem extends StorageSystem {
     datasets = datasets + (name -> dataset)
     dataset
   }
+
+  override def toString: String = getClass.getSimpleName
 }

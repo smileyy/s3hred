@@ -8,4 +8,6 @@ import java.io.InputStream
 trait Representation {
   def reader(name: String, in: InputStream): ColumnReader
   def writer: ColumnWriter
+
+  override def toString: String = getClass.getSimpleName
 }

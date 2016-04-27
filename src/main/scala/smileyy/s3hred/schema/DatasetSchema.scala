@@ -28,6 +28,8 @@ class DatasetSchema(val columns: Seq[Column]) {
     f(adder)
     adder.close()
   }
+
+  override def toString: String = s"${getClass.getSimpleName}${columns.mkString("[", ", ", "]")}"
 }
 object DatasetSchema {
   def apply(names: String*): DatasetSchema = {
