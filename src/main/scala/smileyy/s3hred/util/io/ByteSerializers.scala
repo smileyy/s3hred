@@ -11,7 +11,7 @@ object ByteSerializers {
     case _ => throw new SerializationException(s"Don't know how to serialize a ${v.getClass}: $v")
   }
 
-  def deserializeValue(bytes: Array[Byte]) = {
+  def deserializeValue(bytes: Array[Byte]): Any = {
     // TODO: use type hints to determine type
     new String(bytes, StandardCharsets.UTF_8)
   }

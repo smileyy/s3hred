@@ -3,7 +3,7 @@ package smileyy.s3hred.column
 import java.io.OutputStream
 
 /**
-  * Created by smileyy on 4/15/16.
+  * Writes column values to an output stream.
   */
 trait ColumnWriter {
   def writeValue(out: OutputStream, value: Any): Unit

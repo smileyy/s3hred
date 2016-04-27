@@ -1,5 +1,6 @@
 package smileyy.s3hred.row
 
+import com.typesafe.scalalogging.LazyLogging
 import smileyy.s3hred.column.ColumnReader
 import smileyy.s3hred.query._
 
@@ -9,11 +10,11 @@ import scala.annotation.tailrec
   * Iterates over a sequence of [[ColumnReader]]s to produce a row.
   */
 private[s3hred] class RowIterator(rows: Long, readers: Set[ColumnReader], select: Select, where: Where)
-    extends Iterator[Seq[Any]] {
+    extends Iterator[Seq[Any]] with LazyLogging {
 
   val readersByName: Map[String, ColumnReader] = readers.map { r => r.name -> r }.toMap
   val selected: Seq[ColumnReader] = select.columns.map(readersByName)
-  val filter = RowFilter(readersByName, where.expr)
+  val predicate: ()=> Boolean = createPredicate(where.expr)
 
   var rowsRead: Long = 0
   var nextRow: Option[Seq[Any]] = readNextRow()
@@ -28,7 +29,7 @@ private[s3hred] class RowIterator(rows: Long, readers: Set[ColumnReader], select
     if (rowsRead == rows) None
     else {
       advance()
-      if (filter.acceptsRow()) Some(selected.map(_.currentValue))
+      if (predicate()) Some(selected.map(_.currentValue))
       else readNextRow()
     }
   }
@@ -38,5 +39,20 @@ private[s3hred] class RowIterator(rows: Long, readers: Set[ColumnReader], select
     val values = nextRow.get
     nextRow = readNextRow()
     values
+  }
+
+  private def createPredicate(expr: WhereExpr): () => Boolean = {
+    logger.debug(s"Creating predicates for $expr")
+
+    def and(predicates: List[() => Boolean]): () => Boolean = () => predicates.forall { p => p() }
+    def or(predicates: List[() => Boolean]): () => Boolean = () => predicates.exists { p => p() }
+
+    expr match {
+      case Equals(column, value) => readersByName(column).eq(value)
+      case In(column, values) => readersByName(column).in(values)
+      case And(exprs) => and(exprs.map { e => createPredicate(e) })
+      case Or(exprs) => or(exprs.map(createPredicate))
+      case True => () => true
+    }
   }
 }
