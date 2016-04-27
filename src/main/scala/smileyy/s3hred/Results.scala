@@ -1,3 +1,8 @@
 package smileyy.s3hred
 
-trait Results extends Iterator[Seq[Any]]
+import smileyy.s3hred.util.Table
+
+trait Results extends Iterator[Seq[Any]] {
+  def columns: Seq[String]
+  def toTable: Table = Table(columns, this.toSeq)
+}

@@ -29,8 +29,9 @@ class Dataset(name: String, schema: DatasetSchema, storage: Storage) {
   }
 
   class DatasetResults(select: Select, where: Where) extends Results {
-    val iterator = storage.iterator(select, where)
+    override def columns: Seq[String] = select.columns
 
+    val iterator = storage.iterator(select, where)
     override def hasNext: Boolean = iterator.hasNext
     override def next(): Seq[Any] = iterator.next()
   }

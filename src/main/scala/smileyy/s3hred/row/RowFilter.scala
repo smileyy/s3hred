@@ -11,7 +11,6 @@ object RowFilter {
     expr match {
       case Equals(column, value) => readers(column).eq(value)
       case In(column, values) => readers(column).in(values)
-      case GreaterThan(column, values) => readers(column).gt(values)
       case And(exprs) => AndFilter(readers, exprs)
       case Or(exprs) => OrFilter(readers, exprs)
       case True => TrueFilter

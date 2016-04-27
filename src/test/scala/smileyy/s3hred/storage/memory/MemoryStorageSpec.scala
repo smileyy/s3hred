@@ -1,8 +1,10 @@
 package smileyy.s3hred.storage.memory
 
 import org.scalatest.{FlatSpec, Matchers}
+import smileyy.s3hred.ItemTestData
 import smileyy.s3hred.query.QueryDSL
 import smileyy.s3hred.schema.DatasetSchema
+import smileyy.s3hred.util.Table
 
 /**
   * Tests [[MemoryStorageSystem]] and [[MemoryStorage]]
@@ -10,116 +12,70 @@ import smileyy.s3hred.schema.DatasetSchema
 class MemoryStorageSpec extends FlatSpec with Matchers {
 
   import QueryDSL._
+  import ItemTestData._
 
   val storage = new MemoryStorageSystem()
-  val schema = DatasetSchema("Size", "Color", "Shape")
 
-  val dataset = {
-    storage.datasetRowBuilder("SizesShapesColors", schema)
-        .addRow("Large", "Blue", "Box")
-        .addRow("Small", "Blue", "Circle")
-        .addRow("Small", "Purple", "Circle")
-        .addRow("Large", "Purple", "Circle")
-        .addRow("Medium", "Pink", "Triangle")
-        .close()
+  val dataset = ItemsSchema.newDatasetByRows(ItemsName, storage) { rowAdder =>
+    for (row <- ItemsData) { rowAdder.add(row) }
   }
 
   "An in-memory dataset" should "return all columns" in {
-    val results = dataset.query(select("*"))
-    val rows = results.toSeq
-    rows.size shouldBe 5
-    rows.head shouldBe Seq("Large", "Blue", "Box")
-    rows(4) shouldBe Seq("Medium", "Pink", "Triangle")
+    dataset.query(select("*")).toTable shouldBe ItemsDataTable
   }
 
   it should "return selected columns" in {
-    val results = dataset.query(select("Size", "Shape"))
-    val rows = results.toSeq
-    rows.size shouldBe 5
-    rows.head shouldBe Seq("Large", "Box")
-    rows(4) shouldBe Seq("Medium", "Triangle")
+    dataset.query(select("Size", "Shape")).toTable shouldBe ItemsDataTable.withColumns(Seq("Size","Shape"))
   }
 
   it should "return selected columns in any order" in {
-    val results = dataset.query(select("Shape", "Color"))
-    val rows = results.toSeq
-    rows.size shouldBe 5
-    rows.head shouldBe Seq("Box", "Blue")
-    rows(4) shouldBe Seq("Triangle", "Pink")
+    dataset.query(select("Shape", "Color")).toTable shouldBe ItemsDataTable.withColumns(Seq("Shape", "Color"))
   }
 
   it should "return duplicate columns" in {
-    val results = dataset.query(select("Shape", "Shape"))
-    val rows = results.toSeq
-    rows.size shouldBe 5
-    rows.head shouldBe Seq("Box", "Box")
-    rows(4) shouldBe Seq("Triangle", "Triangle")
+    dataset.query(select("Shape", "Shape")).toTable shouldBe ItemsDataTable.withColumns(Seq("Shape", "Shape"))
   }
 
   it should "support ~=~ expressions that match zero rows" in {
-    val results = dataset.query(select("*"), where("Size" ~=~ "Humongous"))
-    val rows = results.toSeq
-    rows.size shouldBe 0
+    dataset.query(select("*"), where("Size" ~=~ "Humongous")).toTable shouldBe ItemsDataTable.empty
   }
 
   it should "support ~=~ expressions that match some rows " in {
-    val results = dataset.query(select("*"), where("Size" ~=~ "Large"))
-    val rows = results.toSeq
-    rows.size shouldBe 2
-    rows.head shouldBe Seq("Large", "Blue", "Box")
-    rows(1) shouldBe Seq("Large", "Purple", "Circle")
+    dataset.query(select("*"), where("Size" ~=~ "Large")).toTable shouldBe ItemsDataTable.rows(0, 3, 4)
   }
 
   it should "support && expressions" in {
-    val results = dataset.query(select("*"), where(("Size" ~=~ "Large") && ("Color" ~=~ "Blue")))
-    val rows = results.toSeq
-    rows.size shouldBe 1
-    rows.head shouldBe Seq("Large", "Blue", "Box")
+    dataset.query(
+      select("*"),
+      where(("Size" ~=~ "Large") && ("Color" ~=~ "Blue"))
+    ).toTable shouldBe ItemsDataTable.rows(0)
   }
 
   it should "support chained && expressions" in {
-    val results = dataset.query(
+    dataset.query(
       select("*"),
       where(("Size" ~=~ "Large") && ("Color" ~=~ "Blue") && ("Shape" ~=~ "Box"))
-    )
-
-    val rows = results.toSeq
-    rows.size shouldBe 1
-    rows.head shouldBe Seq("Large", "Blue", "Box")
+    ).toTable shouldBe ItemsDataTable.rows(0)
   }
 
   it should "support || expressions" in {
-    val results = dataset.query(select("*"), where(("Size" ~=~ "Small") || ("Color" ~=~ "Blue")))
-    val rows = results.toSeq
-    rows.size shouldBe 3
-    rows.head shouldBe Seq("Large", "Blue", "Box")
-    rows(1) shouldBe Seq("Small", "Blue", "Circle")
-    rows(2) shouldBe Seq("Small", "Purple", "Circle")
+    dataset.query(
+      select("*"),
+      where(("Size" ~=~ "Small") || ("Color" ~=~ "Blue"))
+    ).toTable shouldBe ItemsDataTable.rows(0, 1, 2)
   }
 
   it should "support && and || expressions" in {
-    val results = dataset.query(
+    dataset.query(
       select("*"),
       where((("Color" ~=~ "Purple") || ("Size" ~=~ "Large")) && ("Shape" ~=~ "Box"))
-    )
-    val rows = results.toSeq
-    rows.size shouldBe 1
-    rows shouldBe Seq(
-      Seq("Large", "Blue", "Box")
-    )
+    ).toTable shouldBe ItemsDataTable.rows(0, 4)
   }
 
   it should "support the 'in' operator" in {
-    val results = dataset.query(
+    dataset.query(
       select("*"),
       where("Color" in ("Purple", "Pink"))
-    )
-    val rows = results.toSeq
-    rows.size shouldBe 3
-    rows shouldBe Seq(
-      Seq("Small", "Purple", "Circle"),
-      Seq("Large", "Purple", "Circle"),
-      Seq("Medium", "Pink", "Triangle")
-    )
+    ).toTable shouldBe ItemsDataTable.rows(2, 3, 4, 5)
   }
 }

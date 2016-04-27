@@ -1,8 +1,8 @@
 package smileyy.s3hred.storage.memory
 
-import smileyy.s3hred.Dataset
+import smileyy.s3hred.{Dataset, RowAddingBuilder}
 import smileyy.s3hred.schema.DatasetSchema
-import smileyy.s3hred.storage.{DatasetRowBuilder, StorageSystem}
+import smileyy.s3hred.storage.StorageSystem
 
 /**
   * A [[StorageSystem]] for in-memory datasets
@@ -10,8 +10,8 @@ import smileyy.s3hred.storage.{DatasetRowBuilder, StorageSystem}
 class MemoryStorageSystem extends StorageSystem {
   private var datasets: Map[String, Dataset] = Map.empty
 
-  override def datasetRowBuilder(name: String, schema: DatasetSchema): DatasetRowBuilder = {
-    MemoryStorageRowBuilder(this, name, schema)
+  override def rowAdder(name: String, schema: DatasetSchema): RowAddingBuilder = {
+    MemoryStorageRowAdder(this, name, schema)
   }
 
   private[memory] def createDataset(name: String, storage: MemoryStorage): Dataset = {

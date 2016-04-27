@@ -1,23 +1,22 @@
 package smileyy.s3hred.storage.memory
 
-import smileyy.s3hred.Dataset
+import smileyy.s3hred.{Dataset, RowAddingBuilder}
 import smileyy.s3hred.schema.DatasetSchema
-import smileyy.s3hred.storage.DatasetRowBuilder
 
 /**
   * Builds in-memory datasets
   */
-private[memory] class MemoryStorageRowBuilder(
+private[memory] class MemoryStorageRowAdder(
     mss: MemoryStorageSystem,
     name: String,
     schema: DatasetSchema,
     byteArrayWriters: Seq[ByteArrayColumnWriter])
-  extends DatasetRowBuilder {
+  extends RowAddingBuilder {
 
   var rows = 0
 
-  override def addRowValues(values: Seq[Any]): DatasetRowBuilder = {
-    byteArrayWriters.zip(values) map { case (writer, value) => writer.write(value) }
+  override def add(values: Seq[Any]): RowAddingBuilder = {
+    byteArrayWriters.zip(values) foreach { case (writer, value) => writer.write(value) }
     rows += 1
     this
   }
@@ -32,12 +31,12 @@ private[memory] class MemoryStorageRowBuilder(
     mss.createDataset(name, storage)
   }
 }
-private[memory] object MemoryStorageRowBuilder {
-  def apply(mss: MemoryStorageSystem, name: String, schema: DatasetSchema): MemoryStorageRowBuilder = {
+private[memory] object MemoryStorageRowAdder {
+  def apply(mss: MemoryStorageSystem, name: String, schema: DatasetSchema): MemoryStorageRowAdder = {
     val writers: Seq[ByteArrayColumnWriter] = schema.columns map { column =>
       ByteArrayColumnWriter(column.writer)
     }
 
-    new MemoryStorageRowBuilder(mss, name, schema, writers)
+    new MemoryStorageRowAdder(mss, name, schema, writers)
   }
 }
