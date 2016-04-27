@@ -9,9 +9,10 @@ import smileyy.s3hred.storage.NullStorage
   * Tests the basics of a [[Dataset]] regardless of schema or storage
   */
 class DatasetSpec extends FlatSpec with Matchers {
+  import DatasetSchema._
   import QueryDSL._
 
-  val schema = DatasetSchema("Foo")
+  val schema = rawSchema("FooSchema", Seq("Foo"))
   val dataset = new Dataset("TestData", schema, NullStorage)
 
   "A dataset" should "reject queries selecting undefined columns" in {

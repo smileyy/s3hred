@@ -14,16 +14,15 @@ trait DatasetBehaviors extends Matchers { this: FlatSpec =>
   import ItemTestData._
 
   def newStorageSystem: StorageSystem
-  val schemas: Iterable[DatasetSchema] = List(ItemsSchema)
 
-  schemas.foreach { schema =>
+  Schemas.foreach { schema =>
     val storage = newStorageSystem
-    s"$storage with $schema" should behave like aDataset(schema, storage)
+    s"${schema.name} stored in $storage" should behave like aDataset(schema, storage)
   }
 
   def aDataset(itemSchema: DatasetSchema, store: StorageSystem) {
-    val dataset = itemSchema.newDatasetByRows(ItemsName, store) { rowAdder =>
-      for (row <- ItemsData) { rowAdder.add(row) }
+    val dataset = itemSchema.newDatasetByRows(DatasetName, store) { rowAdder =>
+      for (row <- ItemData) { rowAdder.add(row) }
     }
 
     it should "return all columns" in {

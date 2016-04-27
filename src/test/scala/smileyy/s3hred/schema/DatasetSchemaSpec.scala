@@ -6,9 +6,9 @@ import org.scalatest.{FlatSpec, Matchers}
   * Tests [[DatasetSchema]] creation.
   */
 class DatasetSchemaSpec extends FlatSpec with Matchers {
+  import DatasetSchema._
+
   "A schema" should "not allow duplicate column names" in {
-    intercept[InvalidSchemaException] {
-      DatasetSchema("Foo", "Bar", "Foo")
-    }
+    an [InvalidSchemaException] should be thrownBy rawSchema("InvalidSchema", Seq("Foo", "Bar", "Foo"))
   }
 }

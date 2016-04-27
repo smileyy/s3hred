@@ -1,5 +1,7 @@
 package smileyy.s3hred
 
+import smileyy.s3hred.column.raw.Raw
+import smileyy.s3hred.column.tokenized.Tokenized
 import smileyy.s3hred.schema.DatasetSchema
 import smileyy.s3hred.util.Table
 
@@ -8,9 +10,16 @@ import smileyy.s3hred.util.Table
   */
 object ItemTestData {
 
-  val ItemsName = "Items"
-  val ItemsSchema = DatasetSchema("Size", "Color", "Shape")
-  val ItemsData = Seq(
+  val DatasetName = "Test Items"
+
+  val ItemColumnNames = Seq("Size", "Color", "Shape")
+
+  val Schemas = List(
+    DatasetSchema("Raw", ItemColumnNames.map(_ -> Raw)),
+    DatasetSchema("Tokenized", ItemColumnNames.map(_ -> Tokenized()))
+  )
+
+  val ItemData = Seq(
       Seq("Large", "Blue", "Box"),
       Seq("Small", "Blue", "Circle"),
       Seq("Small", "Purple", "Circle"),
@@ -19,5 +28,5 @@ object ItemTestData {
       Seq("Medium", "Pink", "Triangle")
   )
 
-  val ItemsDataTable = Table(ItemsSchema.columnNames, ItemsData)
+  val ItemsDataTable = Table(ItemColumnNames, ItemData)
 }
