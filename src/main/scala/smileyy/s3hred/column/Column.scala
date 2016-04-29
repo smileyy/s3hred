@@ -3,7 +3,7 @@ package smileyy.s3hred.column
 import java.io.{DataInputStream, DataOutputStream, InputStream}
 
 class Column private (val name: String, val serialization: ColumnSerialization) {
-  def reader(in: InputStream): ColumnReader = serialization.reader(name, new DataInputStream(in))
+  def reader(in: InputStream): ColumnReader = serialization.reader(new DataInputStream(in))
   def writer: ColumnWriter = serialization.writer
 
   override def toString: String = s"$name -> $serialization"
@@ -13,7 +13,6 @@ object Column {
 }
 
 trait ColumnReader {
-  def name: String
   def nextRow(): Unit
   def currentValue: Any
 

@@ -10,14 +10,14 @@ import smileyy.s3hred.util.io.{ByteSerializers, EnhancedStreams}
   * A column that a symbol table and tokens to represent values.
   */
 class Tokenized extends ByteSerialization {
-  override def reader(name: String, in: DataInputStream): ColumnReader = TokenizedColumnReader(name, in)
+  override def reader(in: DataInputStream): ColumnReader = TokenizedColumnReader(in)
   override def writer: ColumnWriter = new TokenizedColumnWriter()
 }
 object Tokenized {
   def apply(): Tokenized = new Tokenized()
 }
 
-private class TokenizedColumnReader(val name: String, tokens: SymbolTable, in: DataInputStream)
+private class TokenizedColumnReader(tokens: SymbolTable, in: DataInputStream)
     extends ColumnReader {
 
   var currentToken = -1
@@ -46,10 +46,10 @@ private class TokenizedColumnReader(val name: String, tokens: SymbolTable, in: D
   }
 }
 private object TokenizedColumnReader {
-  def apply(name: String, in: InputStream): TokenizedColumnReader = {
+  def apply(in: InputStream): TokenizedColumnReader = {
     val datastream = new DataInputStream(in)
     val tokens = SymbolTable.deserialize(datastream)
-    new TokenizedColumnReader(name, tokens, datastream)
+    new TokenizedColumnReader(tokens, datastream)
   }
 }
 

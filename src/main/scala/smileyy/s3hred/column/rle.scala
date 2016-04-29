@@ -8,7 +8,7 @@ import com.typesafe.scalalogging.LazyLogging
   * to an underlying serialization format, such as Raw or Tokenized.
   */
 class RunLengthEncoding(delegate: ByteSerialization) extends ColumnSerialization {
-  override def reader(name: String, in: DataInputStream): ColumnReader = new RleReader(in, delegate.reader(name, in))
+  override def reader(in: DataInputStream): ColumnReader = new RleReader(in, delegate.reader(in))
 
   override def writer: ColumnWriter = new RleWriter(delegate.writer)
 }
@@ -50,7 +50,6 @@ class RleWriter(delegate: ColumnWriter) extends ColumnWriter with LazyLogging {
 }
 
 class RleReader(in: DataInputStream, delegate: ColumnReader) extends ColumnReader with LazyLogging {
-  override def name: String = delegate.name
 
   var counter = 0
 

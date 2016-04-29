@@ -16,10 +16,10 @@ private[memory] class MemoryStorage(val schema: DatasetSchema, data: Map[String,
     extends Storage {
 
   override def iterator(select: Select, where: Where): Iterator[Seq[Any]] = {
-    val readers: Set[ColumnReader] = {
+    val readers: Map[String, ColumnReader] = {
       val names = select.columns.toSet ++ where.columns
-      names.map { name => schema.column(name).reader(new ByteArrayInputStream(data(name))) }
-    }
+      names.map { name => name -> schema.column(name).reader(new ByteArrayInputStream(data(name))) }
+    }.toMap
 
     new RowIterator(numberOfRows, readers, select, where)
   }

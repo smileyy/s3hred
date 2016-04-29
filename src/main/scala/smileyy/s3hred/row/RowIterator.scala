@@ -9,11 +9,10 @@ import scala.annotation.tailrec
 /**
   * Iterates over a sequence of [[ColumnReader]]s to produce a row.
   */
-private[s3hred] class RowIterator(rows: Long, readers: Set[ColumnReader], select: Select, where: Where)
+private[s3hred] class RowIterator(rows: Long, readers: Map[String, ColumnReader], select: Select, where: Where)
     extends Iterator[Seq[Any]] with LazyLogging {
 
-  val readersByName: Map[String, ColumnReader] = readers.map { r => r.name -> r }.toMap
-  val selected: Seq[ColumnReader] = select.columns.map(readersByName)
+  val selected: Seq[ColumnReader] = select.columns.map(readers)
   val predicate: () => Boolean = createPredicate(where.expr)
 
   var rowsRead: Long = 0
@@ -22,7 +21,7 @@ private[s3hred] class RowIterator(rows: Long, readers: Set[ColumnReader], select
   @tailrec
   private def readNextRow(): Option[Seq[Any]] = {
     def advance(): Unit = {
-      readers.foreach { r => r.nextRow()}
+      readers.values.foreach { r => r.nextRow()}
       rowsRead += 1
     }
 
@@ -48,8 +47,8 @@ private[s3hred] class RowIterator(rows: Long, readers: Set[ColumnReader], select
     def or(predicates: List[() => Boolean]): () => Boolean = () => predicates.exists { p => p() }
 
     expr match {
-      case Equals(column, value) => readersByName(column).eq(value)
-      case In(column, values) => readersByName(column).in(values)
+      case Equals(column, value) => readers(column).eq(value)
+      case In(column, values) => readers(column).in(values)
       case And(exprs) => and(exprs.map { e => createPredicate(e) })
       case Or(exprs) => or(exprs.map(createPredicate))
       case True => () => true

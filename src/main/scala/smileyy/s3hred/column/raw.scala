@@ -8,11 +8,11 @@ import smileyy.s3hred.util.io.{ByteSerializers, EnhancedStreams}
   * A "raw" representation of column values
   */
 object Raw extends ByteSerialization {
-  override def reader(name: String, in: DataInputStream): ColumnReader = new RawColumnReader(name, in)
+  override def reader(in: DataInputStream): ColumnReader = new RawColumnReader(in)
   override def writer: ColumnWriter = RawColumnWriter
 }
 
-class RawColumnReader(val name: String, in: InputStream) extends ColumnReader {
+class RawColumnReader(in: InputStream) extends ColumnReader {
   import EnhancedStreams._
 
   var currentValue: Any = null
