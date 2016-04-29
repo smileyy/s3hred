@@ -9,10 +9,12 @@ import smileyy.s3hred.schema.DatasetSchema
   * for Dataset construction.
   */
 trait StorageSystem {
-  def rowAdder(name: String, schema: DatasetSchema): RowAddingBuilder
+  def rowAdder(schema: DatasetSchema): RowAddingBuilder
+  override def toString: String = getClass.getSimpleName
 }
 
 trait Storage {
+  def totalNumberOfRows: Long
   def iterator(select: Select, where: Where): Iterator[Seq[Any]]
 }
 
@@ -20,5 +22,6 @@ trait Storage {
   * A null-object [[Storage]] implementation, primarily used for testing.
   */
 object NullStorage extends Storage {
+  override def totalNumberOfRows: Long = 0
   override def iterator(select: Select, where: Where): Iterator[Seq[Any]] = Iterator.empty
 }
