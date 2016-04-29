@@ -7,7 +7,7 @@ import com.typesafe.scalalogging.LazyLogging
   * Run-length-encoding for data in a [[Column]].  RLE can be applied
   * to an underlying serialization format, such as Raw or Tokenized.
   */
-class RunLengthEncoding(delegate: ByteSerialization) extends ColumnSerialization {
+class RunLengthEncoding private (delegate: ByteSerialization) extends ColumnSerialization {
   override def reader(in: DataInputStream): ColumnReader = new RleReader(in, delegate.reader(in))
 
   override def writer: ColumnWriter = new RleWriter(delegate.writer)
@@ -16,7 +16,7 @@ object RunLengthEncoding {
   def apply(serialization: ByteSerialization): ColumnSerialization = new RunLengthEncoding(serialization)
 }
 
-class RleWriter(delegate: ColumnWriter) extends ColumnWriter with LazyLogging {
+private class RleWriter(delegate: ColumnWriter) extends ColumnWriter with LazyLogging {
   var last: Option[Any] = None
   var count: Int = 0
 
@@ -49,7 +49,7 @@ class RleWriter(delegate: ColumnWriter) extends ColumnWriter with LazyLogging {
   override def writeMetadata(out: DataOutputStream): Unit = delegate.writeMetadata(out)
 }
 
-class RleReader(in: DataInputStream, delegate: ColumnReader) extends ColumnReader with LazyLogging {
+private class RleReader(in: DataInputStream, delegate: ColumnReader) extends ColumnReader with LazyLogging {
 
   var counter = 0
 

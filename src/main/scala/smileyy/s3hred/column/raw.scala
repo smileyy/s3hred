@@ -12,7 +12,7 @@ object Raw extends ByteSerialization {
   override def writer: ColumnWriter = RawColumnWriter
 }
 
-class RawColumnReader(in: InputStream) extends ColumnReader {
+private class RawColumnReader(in: InputStream) extends ColumnReader {
   import EnhancedStreams._
 
   var currentValue: Any = null
@@ -25,7 +25,7 @@ class RawColumnReader(in: InputStream) extends ColumnReader {
   override def in(values: Set[Any]): (() => Boolean) = () => values.contains(currentValue)
 }
 
-object RawColumnWriter extends ColumnWriter {
+private object RawColumnWriter extends ColumnWriter {
   import EnhancedStreams._
 
   override def writeValue(out: DataOutputStream, value: Any): Unit = {
