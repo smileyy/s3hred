@@ -1,6 +1,6 @@
 package smileyy.s3hred.column
 
-import java.io.{DataInputStream, DataOutputStream, InputStream, OutputStream}
+import java.io.{DataInputStream, DataOutputStream}
 
 import smileyy.s3hred.util.io.{ByteSerializers, EnhancedStreams}
 
@@ -8,29 +8,29 @@ import smileyy.s3hred.util.io.{ByteSerializers, EnhancedStreams}
   * A "raw" representation of column values
   */
 object Raw extends ByteSerialization {
-  override def reader(in: DataInputStream): ColumnReader = new RawColumnReader(in)
-  override def writer: ColumnWriter = RawColumnWriter
+  override def reader(data: DataInputStream, meta: DataInputStream): ColumnReader = new RawReader(data, meta)
+  override def writer(data: DataOutputStream, meta: DataOutputStream): ColumnWriter = new RawWriter(data, meta)
 }
 
-private class RawColumnReader(in: InputStream) extends ColumnReader {
+private class RawReader(data: DataInputStream, meta: DataInputStream) extends ColumnReader {
   import EnhancedStreams._
 
   var currentValue: Any = null
 
   override def nextRow(): Unit = {
-    currentValue = ByteSerializers.deserializeValue(in.readLengthValue())
+    currentValue = ByteSerializers.deserializeValue(data.readLengthValue())
   }
 
   override def eq(value: Any): (() =>  Boolean) = () => value == currentValue
   override def in(values: Set[Any]): (() => Boolean) = () => values.contains(currentValue)
 }
 
-private object RawColumnWriter extends ColumnWriter {
+private class RawWriter(data: DataOutputStream, meta: DataOutputStream) extends ColumnWriter {
   import EnhancedStreams._
 
-  override def writeValue(out: DataOutputStream, value: Any): Unit = {
-    out.writeLengthValue(ByteSerializers.serializeValue(value))
+  override def write(value: Any): Unit = {
+    data.writeLengthValue(ByteSerializers.serializeValue(value))
   }
 
-  override def writeMetadata(out: DataOutputStream): Unit = {}
+  override def close(): Unit = {}
 }

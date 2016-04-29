@@ -41,8 +41,6 @@ private[s3hred] class RowIterator(rows: Long, readers: Map[String, ColumnReader]
   }
 
   private def createPredicate(expr: WhereExpr): () => Boolean = {
-    logger.debug(s"Creating predicates for $expr")
-
     def and(predicates: List[() => Boolean]): () => Boolean = () => predicates.forall { p => p() }
     def or(predicates: List[() => Boolean]): () => Boolean = () => predicates.exists { p => p() }
 

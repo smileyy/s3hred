@@ -1,109 +1,78 @@
 package smileyy.s3hred.storage
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataOutputStream}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
-import com.google.common.io.CountingOutputStream
-import com.typesafe.scalalogging.LazyLogging
-import smileyy.s3hred.column.{ColumnReader, ColumnWriter}
+import smileyy.s3hred.column.ColumnReader
 import smileyy.s3hred.query.{Select, Where}
 import smileyy.s3hred.row.RowIterator
-import smileyy.s3hred.{Dataset, RowAddingBuilder}
 import smileyy.s3hred.schema.DatasetSchema
+import smileyy.s3hred.{Dataset, RowAddingBuilder}
 
 /**
   * A [[StorageSystem]] for in-memory datasets
   */
 class MemoryStorageSystem extends StorageSystem {
-  private var datasets: Map[String, Dataset] = Map.empty
-
   override def rowAdder(name: String, schema: DatasetSchema): RowAddingBuilder = {
-    MemoryStorageRowAdder(this, name, schema)
+    new MemoryStorageRowAdder(this, name, schema)
   }
-
-  private[storage] def createDataset(name: String, storage: MemoryStorage): Dataset = {
-    val dataset = new Dataset(name, storage.schema, storage)
-    datasets = datasets + (name -> dataset)
-    dataset
-  }
-
-  override def toString: String = getClass.getSimpleName
 }
 
-private class MemoryStorage(val schema: DatasetSchema, data: Map[String, Array[Byte]], numberOfRows: Long)
-    extends Storage {
+private class MemoryStorage(
+    val schema: DatasetSchema,
+    val totalNumberOfRows: Long,
+    columnArrays: Seq[(Array[Byte], Array[Byte])])
+  extends Storage {
+
+  val columns = schema.columnNames.zip(columnArrays).map { case (name, tuple) =>
+    name -> tuple
+  }.toMap
 
   override def iterator(select: Select, where: Where): Iterator[Seq[Any]] = {
     val readers: Map[String, ColumnReader] = {
       val names = select.columns.toSet ++ where.columns
-      names.map { name => name -> schema.column(name).reader(new ByteArrayInputStream(data(name))) }
-    }.toMap
+      names.map { name =>
+        val column = schema.column(name)
+        val (data, meta) = columns(name)
+        val reader = column.reader(new ByteArrayInputStream(data), new ByteArrayInputStream(meta))
+        name -> reader
+      }.toMap
+    }
 
-    new RowIterator(numberOfRows, readers, select, where)
+    new RowIterator(totalNumberOfRows, readers, select, where)
   }
 }
 
-private class MemoryStorageRowAdder(
-    mss: MemoryStorageSystem,
-    name: String,
-    schema: DatasetSchema,
-    byteArrayWriters: Seq[ByteArrayColumnWriter])
-    extends RowAddingBuilder {
+private class MemoryStorageRowAdder(mss: MemoryStorageSystem, name: String, schema: DatasetSchema)
+  extends RowAddingBuilder {
 
-  var rows = 0
+  var numberOfRows = 0
+
+  val (writers, datastreams, metastreams) = schema.columns.map { column =>
+    val data = new ByteArrayOutputStream()
+    val meta = new ByteArrayOutputStream()
+    val writer = column.writer(data, meta)
+    (writer, data, meta)
+  }.unzip3
 
   override def add(values: Seq[Any]): RowAddingBuilder = {
-    byteArrayWriters.zip(values) foreach { case (writer, value) => writer.write(value) }
-    rows += 1
+    writers.zip(values) foreach { case (writer, value) => writer.write(value) }
+    numberOfRows += 1
     this
   }
 
   override def close(): Dataset = {
+    writers.foreach(_.close())
+    datastreams.foreach(_.close())
+    metastreams.foreach(_.close())
+
     val storage = {
-      val columns = for (writer <- byteArrayWriters) yield writer.close()
-      val columnsByName = schema.columnNames.zip(columns).toMap
-      new MemoryStorage(schema, columnsByName, rows)
+      val columnArrays = datastreams.zip(metastreams).map { case (datastream, metastream) =>
+        (datastream.toByteArray, metastream.toByteArray)
+      }
+      new MemoryStorage(schema, numberOfRows, columnArrays)
     }
 
-    mss.createDataset(name, storage)
-  }
-}
-private object MemoryStorageRowAdder {
-  def apply(mss: MemoryStorageSystem, name: String, schema: DatasetSchema): MemoryStorageRowAdder = {
-    val writers: Seq[ByteArrayColumnWriter] = schema.columns map { column =>
-      ByteArrayColumnWriter(column.writer)
-    }
-
-    new MemoryStorageRowAdder(mss, name, schema, writers)
+    new Dataset(name, schema, storage)
   }
 }
 
-private class ByteArrayColumnWriter(bytestream: ByteArrayOutputStream, writer: ColumnWriter)
-    extends LazyLogging {
-
-  val datastream = new DataOutputStream(bytestream)
-
-  def write(value: Any): Unit = {
-    writer.writeValue(datastream, value)
-  }
-
-  def close(): Array[Byte] = {
-    writer.noMoreValues(datastream)
-
-    val out = new ByteArrayOutputStream()
-    val counter = new CountingOutputStream(out)
-
-    writer.writeMetadata(new DataOutputStream(counter))
-    logger.debug(s"Wrote ${counter.getCount} bytes of metadata")
-
-    val data = bytestream.toByteArray
-    out.write(data)
-    logger.debug(s"Wrote ${data.length} bytes of data")
-
-    out.toByteArray
-  }
-}
-private object ByteArrayColumnWriter {
-  def apply(writer: ColumnWriter): ByteArrayColumnWriter = {
-    new ByteArrayColumnWriter(new ByteArrayOutputStream(), writer)
-  }
-}

@@ -1,6 +1,6 @@
 package smileyy.s3hred.column
 
-import java.io.{DataInputStream, DataOutputStream, InputStream, OutputStream}
+import java.io.{DataInputStream, DataOutputStream, OutputStream}
 
 import com.google.common.io.CountingOutputStream
 import com.typesafe.scalalogging.LazyLogging
@@ -10,20 +10,25 @@ import smileyy.s3hred.util.io.{ByteSerializers, EnhancedStreams}
   * A column that a symbol table and tokens to represent values.
   */
 class Tokenized extends ByteSerialization {
-  override def reader(in: DataInputStream): ColumnReader = TokenizedColumnReader(in)
-  override def writer: ColumnWriter = new TokenizedColumnWriter()
+  override def reader(data: DataInputStream, meta: DataInputStream): ColumnReader = {
+    new TokenizedColumnReader(data, meta)
+  }
+  override def writer(data: DataOutputStream, meta: DataOutputStream): ColumnWriter = {
+    new TokenizedColumnWriter(data, meta)
+  }
 }
 object Tokenized {
   def apply(): Tokenized = new Tokenized()
 }
 
-private class TokenizedColumnReader(tokens: SymbolTable, in: DataInputStream)
+private class TokenizedColumnReader(data: DataInputStream, meta: DataInputStream)
     extends ColumnReader {
 
+  val tokens = SymbolTable.deserialize(meta)
   var currentToken = -1
 
   override def nextRow(): Unit = {
-    currentToken = in.readInt()
+    currentToken = data.readInt()
   }
 
   override def currentValue: Any = tokens(currentToken)
@@ -45,25 +50,18 @@ private class TokenizedColumnReader(tokens: SymbolTable, in: DataInputStream)
     else () => predicate(matchingTokens)
   }
 }
-private object TokenizedColumnReader {
-  def apply(in: InputStream): TokenizedColumnReader = {
-    val datastream = new DataInputStream(in)
-    val tokens = SymbolTable.deserialize(datastream)
-    new TokenizedColumnReader(tokens, datastream)
-  }
-}
 
-private class TokenizedColumnWriter()
+private class TokenizedColumnWriter(data: DataOutputStream, meta: DataOutputStream)
     extends ColumnWriter with LazyLogging {
 
   var tokens = SymbolTable.empty
 
-  override def writeValue(out: DataOutputStream, value: Any): Unit = {
-    tokens = tokens.tokenizeAnd(value) { token => out.writeInt(token) }
+  override def write(value: Any): Unit = {
+    tokens = tokens.tokenizeAnd(value) { token => data.writeInt(token) }
   }
 
-  override def writeMetadata(out: DataOutputStream): Unit = {
-    tokens.serializeTo(out)
+  override def close(): Unit = {
+    tokens.serializeTo(meta)
   }
 }
 
@@ -83,11 +81,9 @@ class SymbolTable private (tokenToValue: Map[Int, Any], valueToToken: Map[Any, I
   def tokenize(value: Any): (Int, SymbolTable) = {
     valueToToken.get(value) match {
       case Some(token) =>
-        logger.debug(s"Token $token exists for $value")
         (token, this)
       case None =>
         val newToken = size
-        logger.debug(s"Created token $newToken for $value")
         val newTable = new SymbolTable(
           tokenToValue + (newToken -> value),
           valueToToken + (value -> newToken),
@@ -107,7 +103,6 @@ class SymbolTable private (tokenToValue: Map[Int, Any], valueToToken: Map[Any, I
     import ByteSerializers._
     import EnhancedStreams._
 
-    logger.debug(s"Serializing symbol table with $size elements")
     val counter = new CountingOutputStream(out)
     counter.writeInt(size)
 
@@ -115,7 +110,6 @@ class SymbolTable private (tokenToValue: Map[Int, Any], valueToToken: Map[Any, I
       stream.writeInt(token).writeLengthValue(serializeValue(value))
     }
 
-    logger.debug(s"Serialized symbol table to ${counter.getCount} bytes")
     counter.getCount
   }
 }
@@ -129,7 +123,6 @@ object SymbolTable extends LazyLogging {
     var tokensToValues: Map[Int, Any] = Map.empty
 
     val size = in.readInt()
-    logger.debug(s"Deserializing symbol table with $size elements")
 
     for (i <- 1 to size) {
       val token = in.readInt()
