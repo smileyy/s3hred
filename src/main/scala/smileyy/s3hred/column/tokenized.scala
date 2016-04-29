@@ -1,6 +1,6 @@
 package smileyy.s3hred.column
 
-import java.io.{DataInputStream, InputStream, OutputStream}
+import java.io.{DataInputStream, DataOutputStream, InputStream, OutputStream}
 
 import com.google.common.io.CountingOutputStream
 import com.typesafe.scalalogging.LazyLogging
@@ -10,7 +10,7 @@ import smileyy.s3hred.util.io.{ByteSerializers, EnhancedStreams}
   * A column that a symbol table and tokens to represent values.
   */
 class Tokenized extends ByteSerialization {
-  override def reader(name: String, in: InputStream): ColumnReader = TokenizedColumnReader(name, in)
+  override def reader(name: String, in: DataInputStream): ColumnReader = TokenizedColumnReader(name, in)
   override def writer: ColumnWriter = new TokenizedColumnWriter()
 }
 object Tokenized {
@@ -56,15 +56,13 @@ private object TokenizedColumnReader {
 private class TokenizedColumnWriter()
     extends ColumnWriter with LazyLogging {
 
-  import EnhancedStreams._
-
   var tokens = SymbolTable.empty
 
-  override def writeValue(out: OutputStream, value: Any): Unit = {
+  override def writeValue(out: DataOutputStream, value: Any): Unit = {
     tokens = tokens.tokenizeAnd(value) { token => out.writeInt(token) }
   }
 
-  override def writeMetadata(out: OutputStream): Unit = {
+  override def writeMetadata(out: DataOutputStream): Unit = {
     tokens.serializeTo(out)
   }
 }

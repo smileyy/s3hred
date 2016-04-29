@@ -1,6 +1,6 @@
 package smileyy.s3hred
 
-import smileyy.s3hred.column.{Raw, Tokenized}
+import smileyy.s3hred.column.{Raw, RunLengthEncoding, RunLengthEncoding$, Tokenized}
 import smileyy.s3hred.schema.DatasetSchema
 import smileyy.s3hred.util.Table
 
@@ -15,7 +15,9 @@ object ItemTestData {
 
   val Schemas = List(
     DatasetSchema("Raw", ItemColumnNames.map(_ -> Raw)),
-    DatasetSchema("Tokenized", ItemColumnNames.map(_ -> Tokenized()))
+    DatasetSchema("Tokenized", ItemColumnNames.map(_ -> Tokenized())),
+    DatasetSchema("RunLengthEncodedRaw", ItemColumnNames.map(_ -> RunLengthEncoding(Raw))),
+    DatasetSchema("RunLengthEncodedTokenized", ItemColumnNames.map(_ -> RunLengthEncoding(Tokenized())))
   )
 
   val ItemData = Seq(

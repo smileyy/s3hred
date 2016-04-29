@@ -1,12 +1,12 @@
 package smileyy.s3hred.column
 
-import java.io.InputStream
+import java.io.DataInputStream
 
 /**
-  * The representation of a column when serialized.
+  * The serialization format of a [[Column]].
   */
 trait ColumnSerialization {
-  def reader(name: String, in: InputStream): ColumnReader
+  def reader(name: String, in: DataInputStream): ColumnReader
   def writer: ColumnWriter
 
   override def toString: String = getClass.getSimpleName

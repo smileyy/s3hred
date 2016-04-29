@@ -1,6 +1,6 @@
 package smileyy.s3hred.column
 
-import java.io.{InputStream, OutputStream}
+import java.io.{DataInputStream, DataOutputStream, InputStream, OutputStream}
 
 import smileyy.s3hred.util.io.{ByteSerializers, EnhancedStreams}
 
@@ -8,7 +8,7 @@ import smileyy.s3hred.util.io.{ByteSerializers, EnhancedStreams}
   * A "raw" representation of column values
   */
 object Raw extends ByteSerialization {
-  override def reader(name: String, in: InputStream): ColumnReader = new RawColumnReader(name, in)
+  override def reader(name: String, in: DataInputStream): ColumnReader = new RawColumnReader(name, in)
   override def writer: ColumnWriter = RawColumnWriter
 }
 
@@ -28,9 +28,9 @@ class RawColumnReader(val name: String, in: InputStream) extends ColumnReader {
 object RawColumnWriter extends ColumnWriter {
   import EnhancedStreams._
 
-  override def writeValue(out: OutputStream, value: Any): Unit = {
+  override def writeValue(out: DataOutputStream, value: Any): Unit = {
     out.writeLengthValue(ByteSerializers.serializeValue(value))
   }
 
-  override def writeMetadata(out: OutputStream): Unit = {}
+  override def writeMetadata(out: DataOutputStream): Unit = {}
 }
