@@ -1,17 +1,14 @@
-package smileyy.s3hred.column.raw
+package smileyy.s3hred.column
 
 import java.io.{InputStream, OutputStream}
 
-import smileyy.s3hred.column.{ColumnReader, ColumnWriter, Representation}
-import smileyy.s3hred.util.io.ByteSerializers
-import smileyy.s3hred.util.io.EnhancedStreams
+import smileyy.s3hred.util.io.{ByteSerializers, EnhancedStreams}
 
 /**
   * A "raw" representation of column values
   */
-object Raw extends Representation {
+object Raw extends ByteSerialization {
   override def reader(name: String, in: InputStream): ColumnReader = new RawColumnReader(name, in)
-
   override def writer: ColumnWriter = RawColumnWriter
 }
 

@@ -1,7 +1,6 @@
 package smileyy.s3hred
 
-import smileyy.s3hred.column.raw.Raw
-import smileyy.s3hred.column.tokenized.Tokenized
+import smileyy.s3hred.column.{Raw, Tokenized}
 import smileyy.s3hred.schema.DatasetSchema
 import smileyy.s3hred.util.Table
 

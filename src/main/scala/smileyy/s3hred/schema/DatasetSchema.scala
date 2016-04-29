@@ -1,9 +1,7 @@
 package smileyy.s3hred.schema
 
-import smileyy.s3hred.column.raw.Raw
 import smileyy.s3hred.{Dataset, RowAddingBuilder}
-import smileyy.s3hred.column.tokenized.Tokenized
-import smileyy.s3hred.column.{Column, Representation}
+import smileyy.s3hred.column.{Column, Raw, ColumnSerialization, Tokenized}
 import smileyy.s3hred.storage.StorageSystem
 
 /**
@@ -33,7 +31,7 @@ class DatasetSchema(val name: String, val columns: Seq[Column]) {
   override def toString: String = s"${getClass.getSimpleName}${columns.mkString("[", ", ", "]")}"
 }
 object DatasetSchema {
-  def apply(name: String, columns: Seq[(String, Representation)]): DatasetSchema = {
+  def apply(name: String, columns: Seq[(String, ColumnSerialization)]): DatasetSchema = {
     new DatasetSchema(name, columns.map { case (n, repr) => Column(n, repr) })
   }
 

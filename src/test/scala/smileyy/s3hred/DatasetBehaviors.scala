@@ -7,7 +7,7 @@ import smileyy.s3hred.storage.StorageSystem
 
 /**
   * The ways a [[Dataset]] should behave for testing different
-  * [[smileyy.s3hred.column.Representation]]s and [[StorageSystem]]s
+  * [[smileyy.s3hred.column.ColumnSerialization]]s and [[StorageSystem]]s
   */
 trait DatasetBehaviors extends Matchers { this: FlatSpec =>
   import QueryDSL._
