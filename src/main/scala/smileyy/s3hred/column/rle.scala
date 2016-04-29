@@ -4,8 +4,8 @@ import java.io.{DataInputStream, DataOutputStream, InputStream, OutputStream}
 import com.typesafe.scalalogging.LazyLogging
 
 /**
-  * Run-length-encoding for data in a [[Column]].  RLE can be applied
-  * to an underlying serialization format, such as Raw or Tokenized.
+  * Run-length encoding for data in a [[Column]].  RLE can be applied
+  * to an underlying serialization format, such as [[Raw]] or [[Tokenized]].
   */
 class RunLengthEncoding private (delegate: ByteSerialization) extends ColumnSerialization {
   override def reader(in: DataInputStream): ColumnReader = new RleReader(in, delegate.reader(in))
