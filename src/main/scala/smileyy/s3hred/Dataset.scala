@@ -8,7 +8,7 @@ import smileyy.s3hred.storage.Storage
 /**
   * A read-only column-oriented set of data that can be queried (efficiently?)
   */
-class Dataset(name: String, schema: DatasetSchema, storage: Storage) {
+class Dataset(schema: DatasetSchema, storage: Storage) {
   def query(select: Option[Select] = None, where: Option[Where] = None): Results = {
     validateColumns(select.map(_.columns).getOrElse(Seq.empty)) { invalid =>
       s"'Select' columns ${invalid.mkString(", ")} not in $schema"

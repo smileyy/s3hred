@@ -9,8 +9,6 @@ import smileyy.s3hred.util.Table
   */
 object ItemTestData {
 
-  val DatasetName = "Test Items"
-
   val ItemColumnNames = Seq("Size", "Color", "Shape")
 
   val Schemas = List(

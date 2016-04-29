@@ -21,7 +21,7 @@ trait DatasetBehaviors extends Matchers { this: FlatSpec =>
   }
 
   def aDataset(itemSchema: DatasetSchema, store: StorageSystem) {
-    val dataset = itemSchema.newDatasetByRows(DatasetName, store) { rowAdder =>
+    val dataset = itemSchema.newDatasetByRows(store) { rowAdder =>
       for (row <- ItemData) { rowAdder.add(row) }
     }
 

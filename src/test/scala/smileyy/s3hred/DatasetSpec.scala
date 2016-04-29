@@ -13,7 +13,7 @@ class DatasetSpec extends FlatSpec with Matchers {
   import QueryDSL._
 
   val schema = rawSchema("FooSchema", Seq("Foo"))
-  val dataset = new Dataset("TestData", schema, NullStorage)
+  val dataset = new Dataset(schema, NullStorage)
 
   "A dataset" should "reject queries selecting undefined columns" in {
     intercept[InvalidQueryException] {

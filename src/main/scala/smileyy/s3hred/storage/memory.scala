@@ -12,8 +12,8 @@ import smileyy.s3hred.{Dataset, RowAddingBuilder}
   * A [[StorageSystem]] for in-memory datasets
   */
 class MemoryStorageSystem extends StorageSystem {
-  override def rowAdder(name: String, schema: DatasetSchema): RowAddingBuilder = {
-    new MemoryStorageRowAdder(this, name, schema)
+  override def rowAdder(schema: DatasetSchema): RowAddingBuilder = {
+    new MemoryStorageRowAdder(this, schema)
   }
 }
 
@@ -42,7 +42,7 @@ private class MemoryStorage(
   }
 }
 
-private class MemoryStorageRowAdder(mss: MemoryStorageSystem, name: String, schema: DatasetSchema)
+private class MemoryStorageRowAdder(mss: MemoryStorageSystem, schema: DatasetSchema)
   extends RowAddingBuilder {
 
   var numberOfRows = 0
@@ -72,7 +72,7 @@ private class MemoryStorageRowAdder(mss: MemoryStorageSystem, name: String, sche
       new MemoryStorage(schema, numberOfRows, columnArrays)
     }
 
-    new Dataset(name, schema, storage)
+    new Dataset(schema, storage)
   }
 }
 

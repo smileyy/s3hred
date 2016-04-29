@@ -13,10 +13,10 @@ import smileyy.s3hred.schema.DatasetSchema
   * Stores [[smileyy.s3hred.Dataset]]s in the filesystem
   */
 class FileStorageSystem(storageSystemRoot: Path) extends StorageSystem {
-  override def rowAdder(name: String, schema: DatasetSchema): RowAddingBuilder = {
-    val datasetDir = storageSystemRoot.resolve(s"$name-${UUID.randomUUID.toString}")
+  override def rowAdder(schema: DatasetSchema): RowAddingBuilder = {
+    val datasetDir = storageSystemRoot.resolve(UUID.randomUUID.toString)
     Files.createDirectories(datasetDir)
-    new FileRowBuilder(name, schema, datasetDir)
+    new FileRowBuilder(schema, datasetDir)
   }
 }
 
@@ -45,7 +45,7 @@ private class FileStorage(
   }
 }
 
-private class FileRowBuilder(name: String, schema: DatasetSchema, dir: Path) extends RowAddingBuilder {
+private class FileRowBuilder(schema: DatasetSchema, dir: Path) extends RowAddingBuilder {
   var numberOfRows: Long = 0
 
   val columns = schema.columns
@@ -68,6 +68,6 @@ private class FileRowBuilder(name: String, schema: DatasetSchema, dir: Path) ext
 
   override def close(): Dataset = {
     writers.foreach(_.close())
-    new Dataset(name, schema, new FileStorage(schema, numberOfRows, files))
+    new Dataset(schema, new FileStorage(schema, numberOfRows, files))
   }
 }

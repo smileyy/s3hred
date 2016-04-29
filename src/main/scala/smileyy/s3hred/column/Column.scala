@@ -1,10 +1,15 @@
 package smileyy.s3hred.column
 
-import java.io.{DataInputStream, DataOutputStream, InputStream}
+import java.io.{DataInputStream, DataOutputStream, InputStream, OutputStream}
 
 class Column private (val name: String, val serialization: ColumnSerialization) {
-  def reader(in: InputStream): ColumnReader = serialization.reader(new DataInputStream(in))
-  def writer: ColumnWriter = serialization.writer
+  def reader(data: InputStream, meta: InputStream): ColumnReader = {
+    serialization.reader(new DataInputStream(data), new DataInputStream(meta))
+  }
+
+  def writer(data: OutputStream, meta: OutputStream): ColumnWriter = {
+    serialization.writer(new DataOutputStream(data), new DataOutputStream(meta))
+  }
 
   override def toString: String = s"$name -> $serialization"
 }
@@ -21,8 +26,6 @@ trait ColumnReader {
 }
 
 trait ColumnWriter {
-  def writeValue(out: DataOutputStream, value: Any): Unit
-  def noMoreValues(out: DataOutputStream): Unit = {}
-
-  def writeMetadata(out: DataOutputStream): Unit
+  def write(value: Any): Unit
+  def close(): Unit
 }

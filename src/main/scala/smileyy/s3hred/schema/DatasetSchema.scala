@@ -22,8 +22,8 @@ class DatasetSchema(val name: String, val columns: Seq[Column]) {
   def column(name: String): Column = columnsByName(name)
   def column(idx: Int): Column = columns(idx)
 
-  def newDatasetByRows(name: String, storage: StorageSystem)(f: RowAddingBuilder => Unit): Dataset = {
-    val adder = storage.rowAdder(name, this)
+  def newDatasetByRows(storage: StorageSystem)(f: RowAddingBuilder => Unit): Dataset = {
+    val adder = storage.rowAdder(this)
     f(adder)
     adder.close()
   }
