@@ -12,10 +12,10 @@ object ItemTestData {
   val ItemColumnNames = Seq("Size", "Color", "Shape")
 
   val Schemas = List(
-    DatasetSchema("Raw", ItemColumnNames.map(_ -> Raw)),
-    DatasetSchema("Tokenized", ItemColumnNames.map(_ -> Tokenized())),
-    DatasetSchema("RunLengthEncodedRaw", ItemColumnNames.map(_ -> RunLengthEncoding(Raw))),
-    DatasetSchema("RunLengthEncodedTokenized", ItemColumnNames.map(_ -> RunLengthEncoding(Tokenized())))
+    "Raw" -> DatasetSchema(ItemColumnNames.map(_ -> Raw)),
+    "Tokenized" -> DatasetSchema(ItemColumnNames.map(_ -> Tokenized())),
+    "RunLengthEncodedRaw" -> DatasetSchema(ItemColumnNames.map(_ -> RunLengthEncoding(Raw))),
+    "RunLengthEncodedTokenized" -> DatasetSchema(ItemColumnNames.map(_ -> RunLengthEncoding(Tokenized())))
   )
 
   val ItemData = Seq(

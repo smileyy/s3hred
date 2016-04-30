@@ -13,18 +13,7 @@ trait DatasetBehaviors extends Matchers { this: FlatSpec =>
   import QueryDSL._
   import ItemTestData._
 
-  def newStorageSystem: StorageSystem
-
-  Schemas.foreach { schema =>
-    val storage = newStorageSystem
-    s"${schema.name} stored in $storage" should behave like aDataset(schema, storage)
-  }
-
-  def aDataset(itemSchema: DatasetSchema, store: StorageSystem) {
-    val dataset = itemSchema.newDatasetByRows(store) { rowAdder =>
-      for (row <- ItemData) { rowAdder.add(row) }
-    }
-
+  def aDataset(dataset: Dataset) {
     it should "return all columns" in {
       dataset.query(select("*")).toTable shouldBe ItemsDataTable
     }

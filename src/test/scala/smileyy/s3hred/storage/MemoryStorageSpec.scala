@@ -6,6 +6,6 @@ import smileyy.s3hred.DatasetBehaviors
 /**
   * Tests [[MemoryStorageSystem]] and [[MemoryStorage]]
   */
-class MemoryStorageSpec extends FlatSpec with DatasetBehaviors {
-  def newStorageSystem = new MemoryStorageSystem
+class MemoryStorageSpec extends FlatSpec with StorageBehaviors {
+  def newStorageSystem = MemoryStorageSystem
 }

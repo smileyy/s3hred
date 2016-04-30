@@ -9,6 +9,8 @@ libraryDependencies ++= Seq(
   "com.google.guava" % "guava" % "19.0",
   "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
 
+  "org.apache.commons" % "commons-csv" % "1.2",
+
   "org.scala-lang" % "scala-reflect" % "2.11.8",
   "org.scala-lang.modules" % "scala-xml_2.11" % "1.0.4",
 

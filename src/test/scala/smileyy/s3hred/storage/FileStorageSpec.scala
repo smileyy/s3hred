@@ -9,7 +9,7 @@ import smileyy.s3hred.DatasetBehaviors
 /**
   * Tests [[FileStorage]] and [[FileStorageSystem]]
   */
-class FileStorageSpec extends FlatSpec with DatasetBehaviors {
+class FileStorageSpec extends FlatSpec with StorageBehaviors {
   override def newStorageSystem: StorageSystem = {
     val storageSystemDir = {
       val path = Paths.get(s"target/FileStorageSpec-${UUID.randomUUID.toString}")

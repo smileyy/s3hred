@@ -1,15 +1,15 @@
 package smileyy.s3hred.column
 
-import java.io.{DataInputStream, DataOutputStream}
+import java.io.{InputStream, OutputStream}
 
 /**
   * The serialization format of a [[Column]].
   */
 trait ColumnSerialization {
-  def reader(data: DataInputStream, meta: DataInputStream): ColumnReader
-  def writer(data: DataOutputStream, meta: DataOutputStream): ColumnWriter
+  def reader(data: InputStream, meta: InputStream): ColumnReader
+  def writer(data: OutputStream, meta: OutputStream): ColumnWriter
 
   override def toString: String = getClass.getSimpleName
 }
 
-trait ByteSerialization extends ColumnSerialization
+trait ValueSerialization extends ColumnSerialization

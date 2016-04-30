@@ -1,5 +1,5 @@
 package smileyy.s3hred.column
-import java.io.{DataInputStream, DataOutputStream}
+import java.io.{DataInputStream, DataOutputStream, InputStream, OutputStream}
 
 import com.typesafe.scalalogging.LazyLogging
 
@@ -7,16 +7,16 @@ import com.typesafe.scalalogging.LazyLogging
   * Run-length encoding for data in a [[Column]].  RLE can be applied
   * to an underlying serialization format, such as [[Raw]] or [[Tokenized]].
   */
-class RunLengthEncoding private (delegate: ByteSerialization) extends ColumnSerialization {
-  override def reader(data: DataInputStream, meta: DataInputStream): ColumnReader = {
-    new RleReader(data, delegate.reader(data, meta))
+class RunLengthEncoding private (delegate: ValueSerialization) extends ColumnSerialization {
+  override def reader(data: InputStream, meta: InputStream): ColumnReader = {
+    new RleReader(new DataInputStream(data), delegate.reader(data, meta))
   }
-  override def writer(data: DataOutputStream, meta: DataOutputStream): ColumnWriter = {
-    new RleWriter(data, delegate.writer(data, meta))
+  override def writer(data: OutputStream, meta: OutputStream): ColumnWriter = {
+    new RleWriter(new DataOutputStream(data), delegate.writer(data, meta))
   }
 }
 object RunLengthEncoding {
-  def apply(serialization: ByteSerialization): ColumnSerialization = new RunLengthEncoding(serialization)
+  def apply(serialization: ValueSerialization): ColumnSerialization = new RunLengthEncoding(serialization)
 }
 
 private class RleWriter(data: DataOutputStream, delegate: ColumnWriter) extends ColumnWriter with LazyLogging {

@@ -9,7 +9,7 @@ import smileyy.s3hred.storage.StorageSystem
   *
   * Presently only [[Tokenized]] string-valued columns are supported
   */
-class DatasetSchema(val name: String, val columns: Seq[Column]) {
+class DatasetSchema(val columns: Seq[Column]) {
   val columnNames: Seq[String] = columns.map(_.name)
 
   private val columnsByName: Map[String, Column] = {
@@ -31,11 +31,11 @@ class DatasetSchema(val name: String, val columns: Seq[Column]) {
   override def toString: String = s"${getClass.getSimpleName}${columns.mkString("[", ", ", "]")}"
 }
 object DatasetSchema {
-  def apply(name: String, columns: Seq[(String, ColumnSerialization)]): DatasetSchema = {
-    new DatasetSchema(name, columns.map { case (n, repr) => Column(n, repr) })
+  def apply(columns: Seq[(String, ColumnSerialization)]): DatasetSchema = {
+    new DatasetSchema(columns.map { case (n, repr) => Column(n, repr) })
   }
 
   def rawSchema(name: String, columns: Seq[String]): DatasetSchema = {
-    new DatasetSchema(name, columns.map(Column(_, Raw)))
+    new DatasetSchema(columns.map(Column(_, Raw)))
   }
 }
