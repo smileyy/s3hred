@@ -1,14 +1,14 @@
 package smileyy.s3hred.column
 
-import java.io.{DataInputStream, DataOutputStream, InputStream, OutputStream}
+import java.io.{InputStream, OutputStream}
 
-class Column private (val name: String, val serialization: ColumnSerialization) {
+class Column(val name: String, serialization: ColumnSerialization) {
   def reader(data: InputStream, meta: InputStream): ColumnReader = {
-    serialization.reader(new DataInputStream(data), new DataInputStream(meta))
+    serialization.reader(data, meta)
   }
 
   def writer(data: OutputStream, meta: OutputStream): ColumnWriter = {
-    serialization.writer(new DataOutputStream(data), new DataOutputStream(meta))
+    serialization.writer(data, meta)
   }
 
   override def toString: String = s"$name -> $serialization"
